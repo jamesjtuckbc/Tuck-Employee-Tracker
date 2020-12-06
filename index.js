@@ -3,9 +3,10 @@ const inquirer = require('inquirer');
 const cTable = require('console.table');
 const connection = require('./connection.js');
 const db = require('./db/db.js');
+const { getDepartments, getRoles } = require('./db/db.js');
 
 
-    init();
+init();
 
 
 async function init() {
@@ -37,20 +38,20 @@ async function init() {
                         viewEmployee();
                         break;
                     case "View Departments":
-                        view('department');
+                        viewDepartment();
                         break;
                     case "View Roles":
-                        view('role');
+                        viewRole();
                         break;
-                    // case "Add Employee":
-                    //     addEmployee();
-                    //     break;
-                    // case "Add Department":
-                    //     addDepartment();
-                    //     break;
-                    // case "Add Role":
-                    //     addRole();
-                    //     break;
+                    case "Add Employee":
+                        addEmployee();
+                        break;
+                    case "Add Department":
+                        addDepartment();
+                        break;
+                    case "Add Role":
+                        addRole();
+                        break;
                     // case "Update Employees":
                     //     updateEmployee();
                     //     break;
@@ -74,32 +75,6 @@ async function init() {
                         break;
                 }
             });
-};
-
-function view(table) {
-    switch (table) {
-        case 'employee':
-            viewEmployee();
-            break;
-        case 'department':
-            const departmentQuery = connection.query(`SELECT * FROM department`, function (err, res) {
-                if (err) throw err;
-                console.log('\n');
-                console.table(res);
-                // init();
-            });
-
-            break;
-        case 'role':
-            const roleQuery = connection.query(`SELECT * FROM role`, function (err, res) {
-                if (err) throw err;
-                console.log('\n');
-                console.table(res);
-            });
-            init();
-            break;
-
-    }
 };
 
 function viewEmployee() {
@@ -137,12 +112,158 @@ function viewEmployee() {
                 case "View All Employees By Manager":
                     empMgr();
                     break;
+                case "back":
+                    init();
+                    break;
                 case "exit":
                     connection.end();
                     break;
             }
         });
 };
+
+async function addEmployee() {
+    const depts = await db.getDepartments();
+    const deptChoices = depts.map(({ id, name }) => ({
+        name: name,
+        value: id
+    }));
+
+    inquirer
+        .prompt([{
+            name: "firstName",
+            type: "input",
+            message: "First name?",
+        },
+        {
+            name: "lastName",
+            type: "input",
+            message: "Last name?",
+        },
+        {
+            name: "dept",
+            type: "list",
+            message: "Department?",
+            choices: deptChoices,
+        }]).then(async function (answer) {
+            const roles = await db.getRoles(answer.dept);
+            const roleChoices = roles.map(({ title, id }) => ({
+                name: title,
+                value: id
+            }));
+            inquirer
+                .prompt({
+                    name: "role",
+                    type: "list",
+                    message: "Role?",
+                    choices: roleChoices
+                }).then(async function (answer2) {
+                    const mgrs = await db.getManagers(answer2.role);
+                    const mgrChoices = mgrs.map(({ name, id }) => ({
+                        name: name,
+                        value: id
+                    }));
+                    inquirer
+                        .prompt({
+                            name: "mgr",
+                            type: "list",
+                            message: "Manager?",
+                            choices: mgrChoices
+                        }).then(function (answer3) {
+                            connection.query(`INSERT INTO employee SET ?`, { 'first_name': answer.firstName, 'last_name': answer.lastName, 'role_id': answer2.role, 'manager_id': answer3.mgr }, function (err, res) {
+                                if (err) throw err;
+                                if (res.affectedRows >= 1) {
+                                    console.log('\n' + 'New employee added!' + '\n');
+                                }
+                                init();
+                            });
+                        })
+                });
+
+
+
+
+        })
+
+
+};
+
+
+function addDepartment() {
+    inquirer
+        .prompt({
+            name: "dept",
+            type: "input",
+            message: "Department name?",
+        }).then(function (answer){
+            connection.query(`INSERT INTO department SET ?`, { 'name': answer.dept}, function (err, res) {
+                if (err) throw err;
+                if (res.affectedRows >= 1) {
+                    console.log('\n' + 'New Department added!' + '\n');
+                }
+                init();
+            });
+        })
+};
+
+
+async function addRole() {
+    const depts = await db.getDepartments();
+    const deptChoices = depts.map(({ id, name }) => ({
+        name: name,
+        value: id
+    }));
+    const valSalary = (salary) => {
+        if (/^[\d]+$/g.test(salary)) {
+            return true;
+        } else {
+            console.log(` - Please use numbers only`);
+            return false;
+        }
+    };
+    inquirer
+        .prompt([{
+            name: "dept",
+            type: "list",
+            message: "Department?",
+            choices: deptChoices,
+        },
+        {
+            name: "title",
+            type: "input",
+            message: "Role name?",
+        },
+        {
+            name: "salary",
+            type: "input",
+            message: "Salary?",
+            validate: (salary) => valSalary(salary)
+
+        }]).then(function (answer){
+            connection.query(`INSERT INTO role SET ?`, { 'title': answer.title, 'salary':answer.salary, 'department_id':answer.dept}, function (err, res) {
+                if (err) throw err;
+                if (res.affectedRows >= 1) {
+                    console.log('\n' + 'New Role added!' + '\n');
+                }
+                init();
+            });
+        })
+};
+
+async function viewDepartment() {
+    const dept = await db.getDepartments()
+    console.log('\n');
+    console.table(dept);
+    init();
+};
+async function viewRole() {
+    const role = await db.getRoles()
+    console.log('\n');
+    console.table(role);
+    init();
+};
+
+
 
 async function empRole() {
     const roles = await db.getRoles();
