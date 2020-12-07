@@ -25,7 +25,7 @@ async function init() {
             'Remove Role',
             'Exit'
         ]
-    }).then(function (answer) {
+    }).then(async function (answer) {
         switch (answer.initQuestion) {
             case 'View Employees':
                 employeeSelection('view');
@@ -58,10 +58,10 @@ async function init() {
                 employeeSelection('remove');
                 break;
             case 'Remove Department':
-                remove('dept');
+                removeRoleOrDept('dept');
                 break;
             case 'Remove Role':
-                remove('role');
+                removeRoleOrDept('role');
                 break;
             case 'Exit':
                 connection.end();
@@ -72,7 +72,7 @@ async function init() {
 
 
 async function employeeSelection(action) {
-    inquirer.prompt({
+    await inquirer.prompt({
         name: 'find',
         type: 'list',
         message: `Find Employee to ${action} by:`,
@@ -99,8 +99,7 @@ async function employeeSelection(action) {
                         const all = await db.getEmployee('nice')
                         console.log('\n');
                         console.table(all);
-                        init();
-                        break;
+                        return init();
                     case 'remove':
                         removeEmployee(empChoices);
                         break;
@@ -111,7 +110,7 @@ async function employeeSelection(action) {
                     name: name,
                     value: id
                 }));
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'value',
                         type: 'list',
@@ -132,8 +131,7 @@ async function employeeSelection(action) {
                             const empDept = await db.getEmployee('dept', answer2.value);
                             console.log('\n');
                             console.table(empDept);
-                            init();
-                            break;
+                            return init();
                         case 'remove':
                             removeEmployee(empChoices);
                             break;
@@ -146,7 +144,7 @@ async function employeeSelection(action) {
                     name: title,
                     value: id
                 }));
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'value',
                         type: 'list',
@@ -167,8 +165,7 @@ async function employeeSelection(action) {
                             const empRole = await db.getEmployee('role', answer2.value);
                             console.log('\n');
                             console.table(empRole);
-                            init();
-                            break;
+                            return init();
                         case 'remove':
                             removeEmployee(empChoices);
                             break;
@@ -181,7 +178,7 @@ async function employeeSelection(action) {
                     name: name,
                     value: id
                 }));
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'value',
                         type: 'list',
@@ -202,8 +199,7 @@ async function employeeSelection(action) {
                             const empMgr = await db.getEmployee('mgr', answer2.value);
                             console.log('\n');
                             console.table(empMgr);
-                            init();
-                            break;
+                            return init();
                         case 'remove':
                             removeEmployee(empChoices);
                             break;
@@ -216,7 +212,7 @@ async function employeeSelection(action) {
                     name: salary,
                     value: id
                 }));
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'value',
                         type: 'list',
@@ -237,8 +233,7 @@ async function employeeSelection(action) {
                             const empSalary = await db.getEmployee('salary', answer2.value);
                             console.log('\n');
                             console.table(empSalary);
-                            init();
-                            break;
+                            return init();
                         case 'remove':
                             removeEmployee(empChoices);
                             break;
@@ -257,14 +252,12 @@ async function view(table) {
             const dept = await db.getDepartments()
             console.log('\n');
             console.table(dept);
-            init();
-            break;
+            return init();
         case 'role':
             const role = await db.getRoles()
             console.log('\n');
             console.table(role);
-            init();
-            break;
+            return init();
     }
 };
 
@@ -274,7 +267,7 @@ async function addEmployee() {
         name: name,
         value: id
     }));
-    inquirer.prompt([{
+    await inquirer.prompt([{
         name: 'firstName',
         type: 'input',
         message: 'First name?',
@@ -295,7 +288,7 @@ async function addEmployee() {
             name: title,
             value: id
         }));
-        inquirer.prompt({
+        await inquirer.prompt({
             name: 'role',
             type: 'list',
             message: 'Role?',
@@ -306,7 +299,7 @@ async function addEmployee() {
                 name: name,
                 value: id
             }));
-            inquirer.prompt({
+            await inquirer.prompt({
                 name: 'mgr',
                 type: 'list',
                 message: 'Manager?',
@@ -320,8 +313,8 @@ async function addEmployee() {
     })
 };
 
-function addDepartment() {
-    inquirer.prompt({
+async function addDepartment() {
+    await inquirer.prompt({
         name: 'dept',
         type: 'input',
         message: 'Department name?',
@@ -346,7 +339,7 @@ async function addRole() {
             return false;
         }
     };
-    inquirer.prompt([{
+    await inquirer.prompt([{
         name: 'dept',
         type: 'list',
         message: 'Department?',
@@ -370,8 +363,8 @@ async function addRole() {
     })
 };
 
-function updateEmployee(empSelection) {
-    inquirer.prompt([
+async function updateEmployee(empSelection) {
+    await inquirer.prompt([
         {
             name: 'emp',
             type: 'list',
@@ -395,7 +388,7 @@ function updateEmployee(empSelection) {
     ]).then(async function (answer) {
         switch (answer.update) {
             case 'Full Name':
-                inquirer.prompt(
+                await inquirer.prompt(
                     [
                         {
                             name: 'firstName',
@@ -415,7 +408,7 @@ function updateEmployee(empSelection) {
                 })
                 break;
             case 'First Name':
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'firstName',
                         type: 'input',
@@ -428,7 +421,7 @@ function updateEmployee(empSelection) {
                 })
                 break;
             case 'Last Name':
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'lastName',
                         type: 'input',
@@ -446,7 +439,7 @@ function updateEmployee(empSelection) {
                     name: title.concat(', ', name, ', ', salary),
                     value: id
                 }));
-                inquirer.prompt({
+                await inquirer.prompt({
                     name: 'role',
                     type: 'list',
                     message: 'Role?',
@@ -464,7 +457,7 @@ function updateEmployee(empSelection) {
                     name: first_name.concat(' ', last_name),
                     value: id
                 }));
-                inquirer.prompt(
+                await inquirer.prompt(
                     {
                         name: 'mgr',
                         type: 'list',
@@ -478,8 +471,7 @@ function updateEmployee(empSelection) {
                 })
                 break;
             case 'Back':
-                init();
-                break;
+                return init();
             case 'Exit':
                 connection.end();
                 break;
@@ -493,7 +485,7 @@ async function updateDepartment() {
         name: name,
         value: id
     }));
-    inquirer.prompt([{
+    await inquirer.prompt([{
         name: 'dept',
         type: 'list',
         message: 'Department to update?',
@@ -516,7 +508,7 @@ async function updateRole() {
         name: title,
         value: id
     }));
-    inquirer.prompt([{
+    await inquirer.prompt([{
         name: 'role',
         type: 'list',
         message: 'Role to update?',
@@ -533,8 +525,8 @@ async function updateRole() {
     })
 };
 
-function removeEmployee(empSelection) {
-    inquirer.prompt(
+async function removeEmployee(empSelection) {
+    await inquirer.prompt(
         {
             name: 'emp',
             type: 'list',
@@ -547,7 +539,7 @@ function removeEmployee(empSelection) {
         })
 };
 
-async function remove(table) {
+async function removeRoleOrDept(table) {
     switch (table) {
         case 'dept':
             const dept = await db.getDepartments()
@@ -555,7 +547,7 @@ async function remove(table) {
                 name: name,
                 value: id
             }));
-            inquirer.prompt(
+            await inquirer.prompt(
                 {
                     name: 'value',
                     type: 'list',
@@ -563,19 +555,17 @@ async function remove(table) {
                     choices: deptChoices,
                 }
             ).then(async function (answer) {
-                await db.delete('department', answer.value);
-                console.log('\n' + 'Department Removed!' + '\n');
+                const id = answer.value;
+                await removeDept(id, deptChoices);
             })
-
-            init();
             break;
         case 'role':
             const roles = await db.getRoles();
-            const roleChoices = roles.map(({ title, id }) => ({
+            const roleChoices = roles.map(({ title, deptId }) => ({
                 name: title,
-                value: id
+                value: deptId
             }));
-            inquirer.prompt(
+            await inquirer.prompt(
                 {
                     name: 'value',
                     type: 'list',
@@ -583,10 +573,223 @@ async function remove(table) {
                     choices: roleChoices,
                 }
             ).then(async function (answer) {
-                await db.delete('role', answer.value);
-                console.log('\n' + 'Role Removed!' + '\n');
+                const id = answer.value;
+                await removeRole(id, roleChoices);
             });
-            init();
             break;
     }
+};
+
+async function removeDept(id, deptChoices) {
+    const hasRoles = await db.roleCount(id)
+    if (hasRoles) {
+        console.log('Has Roles');
+        const roles = await db.getRoles(id);
+        const roleChoices = roles.map(({ title, id }) => ({
+            name: title,
+            value: id
+        }));
+        console.log('\n' + 'These roles need to be moved to a new department or removed' + '\n');
+        console.table(roles);
+        await inquirer.prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'Update or Remove roles?',
+                choices: [
+                    'Update',
+                    'Remove'
+                ]
+            }).then(async function (answer) {
+                switch (answer.action) {
+                    case 'Update':
+                        await inquirer.prompt(
+                            {
+                                name: 'value',
+                                type: 'list',
+                                message: 'New Department for these roles?',
+                                choices: deptChoices,
+                            }
+                        ).then(async function (answer4) {
+                            await db.updateRoleDept(answer4.value);
+                            console.log('\n' + 'Roles Updated!' + '\n');
+                            await db.delete('department', id);
+                            console.log('\n' + 'Department Removed!' + '\n');
+                            init();
+                        })
+                        break;
+                    case 'Remove':
+                        await removeRoleDept(id, roleChoices);
+                        await db.delete('department', id);
+                        console.log('\n' + 'Department Removed!' + '\n');
+                        break;
+                }
+            })
+
+    } else {
+        await db.delete('department', id);
+        console.log('\n' + 'Department Removed!' + '\n');
+        init();
+    }
+}
+
+async function removeRoleDept(deptId, roleChoices) {
+    const hasEmp = await db.empCount(deptId);
+    if (hasEmp) {
+        const roles = await db.getEmployee('dept', deptId);
+        console.log('\n' + 'These employees need to be moved to a new role or removed' + '\n');
+        console.table(roles);
+        await inquirer.prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'Update or Remove employees?',
+                choices: [
+                    'Update',
+                    'Remove'
+                ]
+            }).then(async function (answer) {
+                switch (answer.action) {
+                    case 'Update':
+                        await inquirer.prompt(
+                            {
+                                name: 'value',
+                                type: 'list',
+                                message: 'New Role for these employees?',
+                                choices: roleChoices,
+                            }
+                        ).then(async function (answer4) {
+                            await db.updateEmpRole(answer4.value);
+                            console.log('\n' + 'Employees Updated!' + '\n');
+                            await db.deleteRoleDept(deptId);
+                            console.log('\n' + 'Role Removed!' + '\n');
+                            init();
+                        })
+                        break;
+                    case 'Remove':
+                        await db.updateEmp('MgrNull','','','','',deptId);
+                        await removeEmpDept(deptId);
+                        await db.deleteRoleDept(deptId);
+                        console.log('\n' + 'Role Removed!' + '\n');
+                        break;
+                }
+            })
+    } else {
+        await db.deleteRoleDept(deptId);
+        console.log('\n' + 'Role Removed!' + '\n');
+        init();
+    }
+};
+
+async function removeRole(roleId, roleChoices) {
+    const hasEmp = await db.empCount(roleId);
+    if (hasEmp) {
+        const roles = await db.getEmployee('role', roleId);
+        console.log('\n' + 'These employees need to be moved to a new role or removed' + '\n');
+        console.table(roles);
+        await inquirer.prompt(
+            {
+                name: 'action',
+                type: 'list',
+                message: 'Update or Remove?',
+                choices: [
+                    'Update',
+                    'Remove'
+                ]
+            }).then(async function (answer) {
+                switch (answer.action) {
+                    case 'Update':
+                        await inquirer.prompt(
+                            {
+                                name: 'value',
+                                type: 'list',
+                                message: 'New Role for these employees?',
+                                choices: roleChoices,
+                            }
+                        ).then(async function (answer4) {
+                            await db.updateEmpRole(answer4.value);
+                            console.log('\n' + 'Employees Updated!' + '\n');
+                            await db.delete('role',roleId);
+                            console.log('\n' + 'Role Removed!' + '\n');
+                            init();
+                        })
+                        break;
+                    case 'Remove':
+                        await removeEmp(roleId);
+                        await db.delete('role',roleId);
+                        console.log('\n' + 'Role Removed!' + '\n');
+                        break;
+                }
+            })
+    } else {
+        await db.delete('role',roleId);
+        console.log('\n' + 'Role Removed!' + '\n');
+        init();
+    }
+};
+
+async function removeEmp(roleId) {
+    const hasMgr = await db.mgrCount(roleId);
+    if (hasMgr) {
+        const emp = await db.getEmployee('mgrRole', roleId);
+        console.log('\n' + 'These Employees have a Manager you are trying to delete' + '\n');
+        console.table(emp);
+        const employees = await db.getEmployee('all')
+        const mgrChoices = employees.map(({ id, first_name, last_name }) => ({
+            name: first_name.concat(' ', last_name),
+            value: id
+        }));
+        await inquirer.prompt(
+            {
+                name: 'value',
+                type: 'list',
+                message: 'New Manager for these employees?',
+                choices: mgrChoices,
+            }
+        ).then(async function (answer4) {
+            await db.updateEmp('MgrRole', '', '', '', answer4.value, roleId);
+            console.log('\n' + 'Employees Updated!' + '\n');
+            await db.deleteEmpRole(roleId);
+            console.log('\n' + 'Employees Removed' + '\n');
+            init();
+        })
+    } else {
+        await db.deleteEmpRole(roleId);
+        console.log('\n' + 'Employees Removed' + '\n');
+        init();
+    }
+
+};
+
+async function removeEmpDept(deptId) {
+    const hasMgr = await db.mgrCount(deptId);
+    if (hasMgr) {
+        const emp = await db.getEmployee('mgrDept', deptId);
+        console.log('\n' + 'These Employees have a Manager you are trying to delete' + '\n');
+        console.table(emp);
+        const employees = await db.getEmployee('all')
+        const mgrChoices = employees.map(({ id, first_name, last_name }) => ({
+            name: first_name.concat(' ', last_name),
+            value: id
+        }));
+        await inquirer.prompt(
+            {
+                name: 'value',
+                type: 'list',
+                message: 'New Manager for these employees?',
+                choices: mgrChoices,
+            }
+        ).then(async function (answer4) {
+            await db.updateEmp('MgrDept', '', '', '', answer4.value, deptId);
+            console.log('\n' + 'Employees Updated!' + '\n');
+            await db.deleteEmpDept(deptId);
+            console.log('\n' + 'Employees Removed' + '\n');
+            init();
+        })
+    } else {
+        await db.deleteEmpDept(deptId);
+        console.log('\n' + 'Employees Removed' + '\n');
+        init();
+    }
+
 };
