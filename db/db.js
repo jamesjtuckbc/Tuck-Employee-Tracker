@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 const connection = require('../connection.js');
 
 
@@ -42,34 +41,36 @@ class DB {
                 return this.connection.query(`SELECT e.id, e.first_name, e.last_name, r.title AS 'Title', d.name AS 'Department', r.salary AS 'Salary', CONCAT(e2.first_name, ' ', e2.last_name) AS 'Manager' FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id JOIN employee e2 ON e.manager_id = e2.id WHERE ? ORDER BY e.id ASC`, {'r.id': value})
         }
     }
+    insertEmp(first, last, role, mgr) {
+        return this.connection.query(`INSERT INTO employee SET ?`, { 'first_name': first, 'last_name': last, 'role_id': role, 'manager_id': mgr })
+    }
+    insertDept(name) {
+        return this.connection.query(`INSERT INTO department SET ?`, { 'name': name });
+    }
+    insertRole(title, salary, dept) {
+        return this.connection.query(`INSERT INTO role SET ?`, { 'title': title, 'salary': salary, 'department_id': dept });
+    }
+    updateEmp(by,first,last,role,mgr,id) {
+        switch(by) {
+            case 'Full':
+                return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': first, 'last_name': last }, { 'id': id }]);
+            case 'First':
+                return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': first }, { 'id': id }]);
+            case 'Last':
+                return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'last_name': last }, { 'id': id }]);
+            case 'Role':
+                return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'role_id': role }, { 'id': id }]);
+            case 'Manager':
+                return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'manager_id':mgr }, { 'id': id }]);
+        }
+    }
+    updateDept(name, id) {
+        return this.connection.query('UPDATE department SET ? WHERE ?', [{ 'name': name }, { 'id': id }]);
+    }
+    updateRole(name, id) {
+        return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'title': name }, { 'id': id }]);
+    }
 };
-
-
-
-
-
-
-
-
-// async function getRoles() {
-//     const query = await connection.query('SELECT id, title FROM role', (err,res) => {
-//         if(err){
-//             console.log(err);
-//              return err
-//             };
-//         console.table(res);
-//         return res;
-
-//     });
-//     return query;
-//     // console.log(roleQuery);
-// }
-
-
-
-
-
-
 
 
 module.exports = new DB(connection);

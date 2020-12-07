@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const connection = require('./connection.js');
@@ -55,15 +54,15 @@ async function init() {
             case 'Update Role':
                 updateRole();
                 break;
-            // case 'Remove Employee':
-            //     removeEmployee();
-            //     break;
-            // case 'Remove Department':
-            //     removeDepartment();
-            //     break;
-            // case 'Remove Role':
-            //     removeRole();
-            //     break;
+            case 'Remove Employee':
+                removeEmployee();
+                break;
+            case 'Remove Department':
+                removeDepartment();
+                break;
+            case 'Remove Role':
+                removeRole();
+                break;
             case 'Exit':
                 connection.end();
                 break;
@@ -153,14 +152,10 @@ async function addEmployee() {
                 type: 'list',
                 message: 'Manager?',
                 choices: mgrChoices
-            }).then(function (answer3) {
-                connection.query(`INSERT INTO employee SET ?`, { 'first_name': answer.firstName, 'last_name': answer.lastName, 'role_id': answer2.role, 'manager_id': answer3.mgr }, function (err, res) {
-                    if (err) throw err;
-                    if (res.affectedRows >= 1) {
-                        console.log('\n' + 'New employee added!' + '\n');
-                    }
-                    init();
-                });
+            }).then(async function (answer3) {
+                await db.insertEmp(answer.firstName, answer.lastName, answer2.role, answer3.mgr)
+                console.log('\n' + 'New employee added!' + '\n');
+                init();
             })
         });
     })
@@ -171,14 +166,10 @@ function addDepartment() {
         name: 'dept',
         type: 'input',
         message: 'Department name?',
-    }).then(function (answer) {
-        connection.query(`INSERT INTO department SET ?`, { 'name': answer.dept }, function (err, res) {
-            if (err) throw err;
-            if (res.affectedRows >= 1) {
-                console.log('\n' + 'New Department added!' + '\n');
-            }
-            init();
-        });
+    }).then(async function (answer) {
+        await db.insertDept(answer.dept);
+        console.log('\n' + 'New Department added!' + '\n');
+        init();
     })
 };
 
@@ -213,14 +204,10 @@ async function addRole() {
         message: 'Salary?',
         validate: (salary) => valSalary(salary)
 
-    }]).then(function (answer) {
-        connection.query(`INSERT INTO role SET ?`, { 'title': answer.title, 'salary': answer.salary, 'department_id': answer.dept }, function (err, res) {
-            if (err) throw err;
-            if (res.affectedRows >= 1) {
-                console.log('\n' + 'New Role added!' + '\n');
-            }
-            init();
-        });
+    }]).then(async function (answer) {
+        await db.insertRole(answer.title, answer.salary, answer.dept);
+        console.log('\n' + 'New Role added!' + '\n');
+        init();
     })
 };
 
@@ -389,8 +376,8 @@ function updateEmployee(empSelection) {
                             message: 'Last name?',
                         }
                     ]
-                ).then(function (answer2) {
-                    connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': answer2.firstName, 'last_name': answer2.lastName }, { 'id': answer.emp }]);
+                ).then(async function (answer2) {
+                    await db.updateEmp(answer.update, answer2.firstName, answer2.lastName, answer2.role, answer2.mgr, answer.emp);
                     console.log('\n' + `Employee's full name updated!` + '\n');
                     init();
                 })
@@ -402,8 +389,8 @@ function updateEmployee(empSelection) {
                         type: 'input',
                         message: 'First name?',
                     }
-                ).then(function (answer2) {
-                    connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': answer2.firstName }, { 'id': answer.emp }]);
+                ).then(async function (answer2) {
+                    await db.updateEmp(answer.update, answer2.firstName, answer2.lastName, answer2.role, answer2.mgr, answer.emp);
                     console.log('\n' + `Employee's first name updated!` + '\n');
                     init();
                 })
@@ -415,8 +402,8 @@ function updateEmployee(empSelection) {
                         type: 'input',
                         message: 'Last name?',
                     }
-                ).then(function (answer2) {
-                    connection.query('UPDATE employee SET ? WHERE ?', [{ 'last_name': answer2.lastName }, { 'id': answer.emp }]);
+                ).then(async function (answer2) {
+                    await db.updateEmp(answer.update, answer2.firstName, answer2.lastName, answer2.role, answer2.mgr, answer.emp);
                     console.log('\n' + `Employee's last name updated!` + '\n');
                     init();
                 })
@@ -433,8 +420,8 @@ function updateEmployee(empSelection) {
                     message: 'Role?',
                     choices: roleChoices
                 }
-                ).then(function (answer2) {
-                    connection.query('UPDATE employee SET ? WHERE ?', [{ 'role_id': answer2.role }, { 'id': answer.emp }]);
+                ).then(async function (answer2) {
+                    await db.updateEmp(answer.update, answer2.firstName, answer2.lastName, answer2.role, answer2.mgr, answer.emp);
                     console.log('\n' + `Employee's Role updated!` + '\n');
                     init();
                 })
@@ -452,8 +439,8 @@ function updateEmployee(empSelection) {
                         message: 'Manager?',
                         choices: mgrChoices,
                     }
-                ).then(function (answer2) {
-                    connection.query('UPDATE employee SET ? WHERE ?', [{ 'manager_id': answer2.mgr }, { 'id': answer.emp }]);
+                ).then(async function (answer2) {
+                    await db.updateEmp(answer.update, answer2.firstName, answer2.lastName, answer2.role, answer2.mgr, answer.emp);
                     console.log('\n' + `Employee's Manager updated!` + '\n');
                     init();
                 })
@@ -484,8 +471,8 @@ async function updateDepartment() {
         name: 'deptName',
         type: 'input',
         message: 'New Department name?',
-    }]).then(function (answer) {
-        connection.query('UPDATE department SET ? WHERE ?', [{ 'name': answer.deptName }, { 'id': answer.dept }]);
+    }]).then(async function (answer) {
+        await db.updateDept(answer.deptName, answer.dept);
         console.log('\n' + 'Department Updated!' + '\n');
         init();
     })
@@ -507,8 +494,7 @@ async function updateRole() {
         name: 'roleName',
         type: 'input',
         message: 'New Role name?',
-    }]).then(function (answer) {
-        connection.query('UPDATE department SET ? WHERE ?', [{ 'title': answer.roleName }, { 'id': answer.role }]);
+    }]).then(async function (answer) {
         console.log('\n' + 'Role Updated!' + '\n');
         init();
     })
@@ -528,12 +514,11 @@ async function empRole() {
             message: 'Role?',
             choices: roleChoices
         }
-    ).then(function (answer) {
-        connection.query(`SELECT e.id, e.first_name AS 'First Name', e.last_name AS 'Last Name', r.title AS 'Title', d.name AS 'Department', r.salary AS 'Salary', CONCAT(e2.first_name, ' ', e2.last_name) AS 'Manager' FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id JOIN employee e2 ON e.manager_id = e2.id WHERE ? ORDER BY e.id ASC`, { 'r.id': answer.viewEmpRole }, function (err, res) {
-            if (err) throw err;
-            console.log('\n');
-            console.table(res);
-        });
+    ).then(async function (answer) {
+        const empRole = await db.getEmployee('role', answer.viewEmpRole);
+        console.log('\n');
+        console.table(empRole);
+        
         init();
     });
 };
@@ -550,12 +535,11 @@ async function empDept() {
             message: 'Department?',
             choices: deptChoices
         }
-    ).then(function (answer) {
-        connection.query(`SELECT e.id, e.first_name AS 'First Name', e.last_name AS 'Last Name', r.title AS 'Title', d.name AS 'Department', r.salary AS 'Salary', CONCAT(e2.first_name, ' ', e2.last_name) AS 'Manager' FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id JOIN employee e2 ON e.manager_id = e2.id WHERE ? ORDER BY e.id ASC`, { 'd.id': answer.viewEmpDept }, function (err, res) {
-            if (err) throw err;
-            console.log('\n');
-            console.table(res);
-        });
+    ).then(async function (answer) {
+        const empDept = await db.getEmployee('dept', answer.viewEmpDept);
+        console.log('\n');
+        console.table(empDept);
+
         init();
     });
 };
@@ -571,13 +555,10 @@ async function empMgr() {
         type: 'list',
         message: 'Manager?',
         choices: mgrChoices
-    }).then(function (answer) {
-        connection.query(`SELECT e.id, e.first_name AS 'First Name', e.last_name AS 'Last Name', r.title AS 'Title', d.name AS 'Department', r.salary AS 'Salary', CONCAT(e2.first_name, ' ', e2.last_name) AS 'Manager' FROM employee e JOIN role r ON e.role_id = r.id JOIN department d ON r.department_id = d.id JOIN employee e2 ON e.manager_id = e2.id WHERE ? ORDER BY e.id ASC`, { 'e2.id': answer.viewEmpMgr }, function (err, res) {
-            if (err) throw err;
-            console.log('\n');
-            console.table(res);
-        });
+    }).then(async function (answer) {
+        const empMgr = await db.getEmployee('mgr', answer.viewEmpMgr);
+        console.log('\n');
+        console.table(empMgr);
         init();
     });
 };
-

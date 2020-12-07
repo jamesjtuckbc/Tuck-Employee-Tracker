@@ -1,5 +1,4 @@
 const mysql = require('mysql');
-const index = require('./index.js');
 const util = require('util');
 
 const connection = mysql.createConnection({
