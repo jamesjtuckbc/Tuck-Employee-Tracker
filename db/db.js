@@ -70,6 +70,9 @@ class DB {
     updateRole(name, id) {
         return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'title': name }, { 'id': id }]);
     }
+    delete(table, id) {
+        return this.connection.query(`DELETE FROM ${table} WHERE ?`, {'id': id})
+    }
 };
 
 

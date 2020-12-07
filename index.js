@@ -28,13 +28,13 @@ async function init() {
     }).then(function (answer) {
         switch (answer.initQuestion) {
             case 'View Employees':
-                viewEmployee();
+                employeeSelection('view');
                 break;
             case 'View Departments':
-                viewDepartment();
+                view('dept');
                 break;
             case 'View Roles':
-                viewRole();
+                view('role');
                 break;
             case 'Add Employee':
                 addEmployee();
@@ -46,7 +46,7 @@ async function init() {
                 addRole();
                 break;
             case 'Update Employees':
-                updateEmployeeSelection();
+                employeeSelection('update');
                 break;
             case 'Update Department':
                 updateDepartment();
@@ -55,13 +55,13 @@ async function init() {
                 updateRole();
                 break;
             case 'Remove Employee':
-                removeEmployee();
+                employeeSelection('remove');
                 break;
             case 'Remove Department':
-                removeDepartment();
+                remove('dept');
                 break;
             case 'Remove Role':
-                removeRole();
+                remove('role');
                 break;
             case 'Exit':
                 connection.end();
@@ -70,43 +70,202 @@ async function init() {
     });
 };
 
-function viewEmployee() {
+
+async function employeeSelection(action) {
     inquirer.prompt({
-        name: 'viewEmployee',
+        name: 'find',
         type: 'list',
-        message: 'What would you like to do?',
+        message: `Find Employee to ${action} by:`,
         choices: [
-            'View All Employees',
-            'View All Employees By Role',
-            'View All Employees By Department',
-            'View All Employees By Manager',
-            'exit'
+            { name: 'All Employees', value: 'all' },
+            { name: 'Employees by Department', value: 'dept' },
+            { name: 'Employees by Role', value: 'role' },
+            { name: 'Employees by Manager', value: 'mgr' },
+            { name: 'Employees by Salary', value: 'salary' },
         ]
     }).then(async function (answer) {
-        switch (answer.viewEmployee) {
-            case 'View All Employees':
-                const all = await db.getEmployee('nice')
-                console.log('\n');
-                console.table(all);
-                init();
+        switch (answer.find) {
+            case 'all':
+                const emp = await db.getEmployee(answer.find);
+                const empChoices = emp.map(({ id, first_name, last_name }) => ({
+                    name: first_name.concat(' ', last_name),
+                    value: id
+                }));
+                switch (action) {
+                    case 'update':
+                        updateEmployee(empChoices);
+                        break;
+                    case 'view':
+                        const all = await db.getEmployee('nice')
+                        console.log('\n');
+                        console.table(all);
+                        init();
+                        break;
+                    case 'remove':
+                        removeEmployee(empChoices);
+                        break;
+                }
+            case 'dept':
+                const depts = await db.getDepartments();
+                const deptChoices = depts.map(({ id, name }) => ({
+                    name: name,
+                    value: id
+                }));
+                inquirer.prompt(
+                    {
+                        name: 'value',
+                        type: 'list',
+                        message: 'Department?',
+                        choices: deptChoices,
+                    }
+                ).then(async function (answer2) {
+                    const emp = await db.getEmployee(answer.find, answer2.value);
+                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
+                        name: first_name.concat(' ', last_name),
+                        value: id
+                    }));
+                    switch (action) {
+                        case 'update':
+                            updateEmployee(empChoices);
+                            break;
+                        case 'view':
+                            const empDept = await db.getEmployee('dept', answer2.value);
+                            console.log('\n');
+                            console.table(empDept);
+                            init();
+                            break;
+                        case 'remove':
+                            removeEmployee(empChoices);
+                            break;
+                    }
+                })
                 break;
-            case 'View All Employees By Role':
-                empRole();
+            case 'role':
+                const roles = await db.getRoles();
+                const roleChoices = roles.map(({ title, id }) => ({
+                    name: title,
+                    value: id
+                }));
+                inquirer.prompt(
+                    {
+                        name: 'value',
+                        type: 'list',
+                        message: 'Role?',
+                        choices: roleChoices,
+                    }
+                ).then(async function (answer2) {
+                    const emp = await db.getEmployee(answer.find, answer2.value);
+                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
+                        name: first_name.concat(' ', last_name),
+                        value: id
+                    }));
+                    switch (action) {
+                        case 'update':
+                            updateEmployee(empChoices);
+                            break;
+                        case 'view':
+                            const empRole = await db.getEmployee('role', answer2.value);
+                            console.log('\n');
+                            console.table(empRole);
+                            init();
+                            break;
+                        case 'remove':
+                            removeEmployee(empChoices);
+                            break;
+                    }
+                })
                 break;
-            case 'View All Employees By Department':
-                empDept();
+            case 'mgr':
+                const mgrs = await db.getManagers();
+                const mgrChoices = mgrs.map(({ name, id }) => ({
+                    name: name,
+                    value: id
+                }));
+                inquirer.prompt(
+                    {
+                        name: 'value',
+                        type: 'list',
+                        message: 'Manager?',
+                        choices: mgrChoices,
+                    }
+                ).then(async function (answer2) {
+                    const emp = await db.getEmployee(answer.find, answer2.value);
+                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
+                        name: first_name.concat(' ', last_name),
+                        value: id
+                    }));
+                    switch (action) {
+                        case 'update':
+                            updateEmployee(empChoices);
+                            break;
+                        case 'view':
+                            const empMgr = await db.getEmployee('mgr', answer2.value);
+                            console.log('\n');
+                            console.table(empMgr);
+                            init();
+                            break;
+                        case 'remove':
+                            removeEmployee(empChoices);
+                            break;
+                    }
+                })
                 break;
-            case 'View All Employees By Manager':
-                empMgr();
-                break;
-            case 'back':
-                init();
-                break;
-            case 'exit':
-                connection.end();
+            case 'salary':
+                const salary = await db.getRoles();
+                const salaryChoices = salary.map(({ salary, id }) => ({
+                    name: salary,
+                    value: id
+                }));
+                inquirer.prompt(
+                    {
+                        name: 'value',
+                        type: 'list',
+                        message: 'Salary?',
+                        choices: salaryChoices,
+                    }
+                ).then(async function (answer2) {
+                    const emp = await db.getEmployee(answer.find, answer2.value);
+                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
+                        name: first_name.concat(' ', last_name),
+                        value: id
+                    }));
+                    switch (action) {
+                        case 'update':
+                            updateEmployee(empChoices);
+                            break;
+                        case 'view':
+                            const empSalary = await db.getEmployee('salary', answer2.value);
+                            console.log('\n');
+                            console.table(empSalary);
+                            init();
+                            break;
+                        case 'remove':
+                            removeEmployee(empChoices);
+                            break;
+                    }
+                })
                 break;
         }
-    });
+    })
+};
+
+
+
+async function view(table) {
+    switch (table) {
+        case 'dept':
+            const dept = await db.getDepartments()
+            console.log('\n');
+            console.table(dept);
+            init();
+            break;
+        case 'role':
+            const role = await db.getRoles()
+            console.log('\n');
+            console.table(role);
+            init();
+            break;
+    }
 };
 
 async function addEmployee() {
@@ -210,133 +369,6 @@ async function addRole() {
         init();
     })
 };
-
-async function viewDepartment() {
-    const dept = await db.getDepartments()
-    console.log('\n');
-    console.table(dept);
-    init();
-};
-async function viewRole() {
-    const role = await db.getRoles()
-    console.log('\n');
-    console.table(role);
-    init();
-};
-
-async function updateEmployeeSelection() {
-    inquirer.prompt({
-        name: 'find',
-        type: 'list',
-        message: 'Find Employee to update by:',
-        choices: [
-            { name: 'All Employees', value: 'all' },
-            { name: 'Employees by Department', value: 'dept' },
-            { name: 'Employees by Role', value: 'role' },
-            { name: 'Employees by Manager', value: 'mgr' },
-            { name: 'Employees by Salary', value: 'salary' },
-        ]
-    }).then(async function (answer) {
-        switch (answer.find) {
-            case 'all':
-                const emp = await db.getEmployee(answer.find);
-                const empChoices = emp.map(({ id, first_name, last_name }) => ({
-                    name: first_name.concat(' ', last_name),
-                    value: id
-                }));
-                updateEmployee(empChoices);
-                break;
-            case 'dept':
-                const depts = await db.getDepartments();
-                const deptChoices = depts.map(({ id, name }) => ({
-                    name: name,
-                    value: id
-                }));
-                inquirer.prompt(
-                    {
-                        name: 'value',
-                        type: 'list',
-                        message: 'Department?',
-                        choices: deptChoices,
-                    }
-                ).then(async function (answer2) {
-                    const emp = await db.getEmployee(answer.find, answer2.value);
-                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
-                        name: first_name.concat(' ', last_name),
-                        value: id
-                    }));
-                    updateEmployee(empChoices);
-                })
-                break;
-            case 'role':
-                const roles = await db.getRoles();
-                const roleChoices = roles.map(({ title, id }) => ({
-                    name: title,
-                    value: id
-                }));
-                inquirer.prompt(
-                    {
-                        name: 'value',
-                        type: 'list',
-                        message: 'Role?',
-                        choices: roleChoices,
-                    }
-                ).then(async function (answer2) {
-                    const emp = await db.getEmployee(answer.find, answer2.value);
-                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
-                        name: first_name.concat(' ', last_name),
-                        value: id
-                    }));
-                    updateEmployee(empChoices);
-                })
-                break;
-            case 'mgr':
-                const mgrs = await db.getManagers();
-                const mgrChoices = mgrs.map(({ name, id }) => ({
-                    name: name,
-                    value: id
-                }));
-                inquirer.prompt(
-                    {
-                        name: 'value',
-                        type: 'list',
-                        message: 'Manager?',
-                        choices: mgrChoices,
-                    }
-                ).then(async function (answer2) {
-                    const emp = await db.getEmployee(answer.find, answer2.value);
-                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
-                        name: first_name.concat(' ', last_name),
-                        value: id
-                    }));
-                    updateEmployee(empChoices);
-                })
-                break;
-            case 'salary':
-                const salary = await db.getRoles();
-                const salaryChoices = salary.map(({ salary, id }) => ({
-                    name: salary,
-                    value: id
-                }));
-                inquirer.prompt(
-                    {
-                        name: 'value',
-                        type: 'list',
-                        message: 'Salary?',
-                        choices: salaryChoices,
-                    }
-                ).then(async function (answer2) {
-                    const emp = await db.getEmployee(answer.find, answer2.value);
-                    const empChoices = emp.map(({ id, first_name, last_name }) => ({
-                        name: first_name.concat(' ', last_name),
-                        value: id
-                    }));
-                    updateEmployee(empChoices);
-                })
-                break;
-        }
-    })
-}
 
 function updateEmployee(empSelection) {
     inquirer.prompt([
@@ -495,70 +527,66 @@ async function updateRole() {
         type: 'input',
         message: 'New Role name?',
     }]).then(async function (answer) {
+        await db.updateRole(answer.roleName, answer.role);
         console.log('\n' + 'Role Updated!' + '\n');
         init();
     })
 };
 
-
-async function empRole() {
-    const roles = await db.getRoles();
-    const roleChoices = roles.map(({ title, id }) => ({
-        name: title,
-        value: id
-    }));
+function removeEmployee(empSelection) {
     inquirer.prompt(
         {
-            name: 'viewEmpRole',
+            name: 'emp',
             type: 'list',
-            message: 'Role?',
-            choices: roleChoices
-        }
-    ).then(async function (answer) {
-        const empRole = await db.getEmployee('role', answer.viewEmpRole);
-        console.log('\n');
-        console.table(empRole);
-        
-        init();
-    });
-};
-async function empDept() {
-    const depts = await db.getDepartments();
-    const deptChoices = depts.map(({ id, name }) => ({
-        name: name,
-        value: id
-    }));
-    inquirer.prompt(
-        {
-            name: 'viewEmpDept',
-            type: 'list',
-            message: 'Department?',
-            choices: deptChoices
-        }
-    ).then(async function (answer) {
-        const empDept = await db.getEmployee('dept', answer.viewEmpDept);
-        console.log('\n');
-        console.table(empDept);
-
-        init();
-    });
+            message: 'Choose Employee to remove',
+            choices: empSelection
+        }).then(async function (answer) {
+            await db.delete('employee', answer.emp);
+            console.log('\n' + 'Employee Removed!' + '\n');
+            init();
+        })
 };
 
-async function empMgr() {
-    const mgrs = await db.getManagers();
-    const mgrChoices = mgrs.map(({ name, id }) => ({
-        name: name,
-        value: id
-    }));
-    inquirer.prompt({
-        name: 'viewEmpMgr',
-        type: 'list',
-        message: 'Manager?',
-        choices: mgrChoices
-    }).then(async function (answer) {
-        const empMgr = await db.getEmployee('mgr', answer.viewEmpMgr);
-        console.log('\n');
-        console.table(empMgr);
-        init();
-    });
+async function remove(table) {
+    switch (table) {
+        case 'dept':
+            const dept = await db.getDepartments()
+            const deptChoices = dept.map(({ id, name }) => ({
+                name: name,
+                value: id
+            }));
+            inquirer.prompt(
+                {
+                    name: 'value',
+                    type: 'list',
+                    message: 'Department to remove?',
+                    choices: deptChoices,
+                }
+            ).then(async function (answer) {
+                await db.delete('department', answer.value);
+                console.log('\n' + 'Department Removed!' + '\n');
+            })
+
+            init();
+            break;
+        case 'role':
+            const roles = await db.getRoles();
+            const roleChoices = roles.map(({ title, id }) => ({
+                name: title,
+                value: id
+            }));
+            inquirer.prompt(
+                {
+                    name: 'value',
+                    type: 'list',
+                    message: 'Role to remove?',
+                    choices: roleChoices,
+                }
+            ).then(async function (answer) {
+                await db.delete('role', answer.value);
+                console.log('\n' + 'Role Removed!' + '\n');
+            });
+            init();
+            break;
+    }
 };
