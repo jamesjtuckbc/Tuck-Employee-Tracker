@@ -93,16 +93,16 @@ async function employeeSelection(action) {
                 }));
                 switch (action) {
                     case 'update':
-                        updateEmployee(empChoices);
-                        break;
+                        await updateEmployee(empChoices);
+                        return;
                     case 'view':
                         const all = await db.getEmployee('nice')
                         console.log('\n');
                         console.table(all);
                         return init();
                     case 'remove':
-                        removeEmployee(empChoices);
-                        break;
+                        await removeEmployee(empChoices);
+                        return;
                 }
             case 'dept':
                 const depts = await db.getDepartments();
@@ -125,16 +125,16 @@ async function employeeSelection(action) {
                     }));
                     switch (action) {
                         case 'update':
-                            updateEmployee(empChoices);
-                            break;
+                            await updateEmployee(empChoices);
+                            return;
                         case 'view':
                             const empDept = await db.getEmployee('dept', answer2.value);
                             console.log('\n');
                             console.table(empDept);
                             return init();
                         case 'remove':
-                            removeEmployee(empChoices);
-                            break;
+                            await removeEmployee(empChoices);
+                            return;
                     }
                 })
                 break;
@@ -159,16 +159,16 @@ async function employeeSelection(action) {
                     }));
                     switch (action) {
                         case 'update':
-                            updateEmployee(empChoices);
-                            break;
+                            await updateEmployee(empChoices);
+                            return;
                         case 'view':
                             const empRole = await db.getEmployee('role', answer2.value);
                             console.log('\n');
                             console.table(empRole);
                             return init();
                         case 'remove':
-                            removeEmployee(empChoices);
-                            break;
+                            await removeEmployee(empChoices);
+                            return;
                     }
                 })
                 break;
@@ -193,16 +193,16 @@ async function employeeSelection(action) {
                     }));
                     switch (action) {
                         case 'update':
-                            updateEmployee(empChoices);
-                            break;
+                            await updateEmployee(empChoices);
+                            return;
                         case 'view':
                             const empMgr = await db.getEmployee('mgr', answer2.value);
                             console.log('\n');
                             console.table(empMgr);
                             return init();
                         case 'remove':
-                            removeEmployee(empChoices);
-                            break;
+                            await removeEmployee(empChoices);
+                            return;
                     }
                 })
                 break;
@@ -227,16 +227,16 @@ async function employeeSelection(action) {
                     }));
                     switch (action) {
                         case 'update':
-                            updateEmployee(empChoices);
-                            break;
+                            await updateEmployee(empChoices);
+                            return;
                         case 'view':
                             const empSalary = await db.getEmployee('salary', answer2.value);
                             console.log('\n');
                             console.table(empSalary);
                             return init();
                         case 'remove':
-                            removeEmployee(empChoices);
-                            break;
+                            await removeEmployee(empChoices);
+                            return;
                     }
                 })
                 break;
@@ -294,9 +294,9 @@ async function addEmployee() {
             message: 'Role?',
             choices: roleChoices
         }).then(async function (answer2) {
-            const mgrs = await db.getManagers(answer2.role);
-            const mgrChoices = mgrs.map(({ name, id }) => ({
-                name: name,
+            const mgrs = await db.getEmployee('all');
+            const mgrChoices = mgrs.map(({ id, first_name, last_name }) => ({
+                name: first_name.concat(' ', last_name),
                 value: id
             }));
             await inquirer.prompt({

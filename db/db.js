@@ -15,8 +15,7 @@ class DB {
         }
     }
     getDepartments() {
-        return this.connection.query('SELECT d.id, d.name, IFNULL(SUM(r.salary),0) as "salary cost" FROM department d LEFT JOIN role r ON d.id = r.department_id LEFT JOIN employee e ON r.id = e.role_id GROUP BY d.id, d.name ORDER BY SUM(r.salary) DESC');
-
+        return this.connection.query('SELECT d.id, d.name, IFNULL(SUM(r2.salary),0) as "salary cost" FROM department d LEFT JOIN role r ON d.id = r.department_id LEFT JOIN employee e ON r.id = e.role_id LEFT JOIN role r2 ON e.role_id = r2.id GROUP BY d.id, d.name ORDER BY SUM(r.salary) DESC');
     }
     getManagers(role) {
         if(role == null){
