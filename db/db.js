@@ -79,11 +79,11 @@ class DB {
     updateRole(name, salary, id) {
         return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'title': name, 'salary': salary }, { 'id': id }]);
     }
-    updateRoleDept(dept) {
-        return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'department_id': dept }, { 'department_id': dept }]);
+    updateRoleDept(newDept, oldDept) {
+        return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'department_id': newDept }, { 'department_id': oldDept }]);
     }
-    updateEmpRole(role) {
-        return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'role_id': role }, { 'role_id': role }]);
+    updateEmpRole(newRole, oldDept) {
+        return this.connection.query('UPDATE employee SET ? WHERE role_id IN (SELECT id FROM role WHERE ?)', [{ 'role_id': newRole }, { 'department_id': oldDept }]);
     }
     delete(table, id) {
         return this.connection.query(`DELETE FROM ${table} WHERE ?`, {'id': id});

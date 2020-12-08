@@ -619,7 +619,7 @@ async function removeDept(id, deptChoices) {
                                 choices: deptChoices,
                             }
                         ).then(async function (answer4) {
-                            await db.updateRoleDept(answer4.value);
+                            await db.updateRoleDept(answer4.value, id);
                             console.log('\n' + 'Roles Updated!' + '\n');
                             await db.delete('department', id);
                             console.log('\n' + 'Department Removed!' + '\n');
@@ -630,7 +630,7 @@ async function removeDept(id, deptChoices) {
                         await removeRoleDept(id, roleChoices);
                         await db.delete('department', id);
                         console.log('\n' + 'Department Removed!' + '\n');
-                        break;
+                        return;
                 }
             })
 
@@ -667,7 +667,7 @@ async function removeRoleDept(deptId, roleChoices) {
                                 choices: roleChoices,
                             }
                         ).then(async function (answer4) {
-                            await db.updateEmpRole(answer4.value);
+                            await db.updateEmpRole(answer4.value, deptId);
                             console.log('\n' + 'Employees Updated!' + '\n');
                             await db.deleteRoleDept(deptId);
                             console.log('\n' + 'Role Removed!' + '\n');
