@@ -55,13 +55,13 @@ class DB {
     }
     updateEmp(by,first,last,role,mgr,id) {
         switch(by) {
-            case 'Full':
+            case 'Full Name':
                 return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': first, 'last_name': last }, { 'id': id }]);
-            case 'First':
+            case 'First Name':
                 return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'first_name': first }, { 'id': id }]);
-            case 'Last':
+            case 'Last Name':
                 return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'last_name': last }, { 'id': id }]);
-            case 'Role':
+            case 'Role, Department, and Salary':
                 return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'role_id': role }, { 'id': id }]);
             case 'Manager':
                 return this.connection.query('UPDATE employee SET ? WHERE ?', [{ 'manager_id':mgr }, { 'id': id }]);
