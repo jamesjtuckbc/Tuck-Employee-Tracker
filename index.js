@@ -791,5 +791,4 @@ async function removeEmpDept(deptId) {
         console.log('\n' + 'Employees Removed' + '\n');
         init();
     }
-
 };
