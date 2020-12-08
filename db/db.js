@@ -14,6 +14,9 @@ class DB {
             return this.connection.query('SELECT r.id, r.title, r.salary, d.name AS "department name" FROM role r LEFT JOIN department d ON r.department_id = d.id WHERE ?',{'d.id':dept});
         }
     }
+    getRoleId(empId) {
+        return this.connection.query('SELECT role_id FROM employee WHERE ?', {'id': empId});
+    }
     getDepartments() {
         return this.connection.query('SELECT d.id, d.name, IFNULL(SUM(r2.salary),0) as "salary cost" FROM department d LEFT JOIN role r ON d.id = r.department_id LEFT JOIN employee e ON r.id = e.role_id LEFT JOIN role r2 ON e.role_id = r2.id GROUP BY d.id, d.name ORDER BY SUM(r.salary) DESC');
     }

@@ -541,9 +541,9 @@ async function removeEmployee(empSelection) {
             message: 'Choose Employee to remove',
             choices: empSelection
         }).then(async function (answer) {
-            await db.delete('employee', answer.emp);
-            console.log('\n' + 'Employee Removed!' + '\n');
-            init();
+            const roleId = await db.getRoleId(answer.emp)
+            console.log(roleId[0].role_id);
+            removeEmp(roleId[0].role_id);
         })
 };
 
