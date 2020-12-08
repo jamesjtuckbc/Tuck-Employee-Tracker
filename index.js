@@ -3,6 +3,16 @@ const cTable = require('console.table');
 const connection = require('./connection.js');
 const db = require('./db/db.js');
 
+const valSalary = (salary) => {
+    if (/^[\d]+$/g.test(salary)) {
+        return true;
+    } else {
+        console.log(` - Please use numbers only`);
+        return false;
+    }
+};
+
+
 init();
 
 async function init() {
@@ -331,14 +341,6 @@ async function addRole() {
         name: name,
         value: id
     }));
-    const valSalary = (salary) => {
-        if (/^[\d]+$/g.test(salary)) {
-            return true;
-        } else {
-            console.log(` - Please use numbers only`);
-            return false;
-        }
-    };
     await inquirer.prompt([{
         name: 'dept',
         type: 'list',
@@ -518,8 +520,14 @@ async function updateRole() {
         name: 'roleName',
         type: 'input',
         message: 'New Role name?',
+    },
+    {
+        name: 'roleSalary',
+        type: 'input',
+        message: 'Updated salary?',
+        validate: (salary) => valSalary(salary),
     }]).then(async function (answer) {
-        await db.updateRole(answer.roleName, answer.role);
+        await db.updateRole(answer.roleName, answer.roleSalary, answer.role);
         console.log('\n' + 'Role Updated!' + '\n');
         init();
     })
@@ -665,13 +673,13 @@ async function removeRoleDept(deptId, roleChoices) {
                             console.log('\n' + 'Role Removed!' + '\n');
                             init();
                         })
-                        break;
+                        return;
                     case 'Remove':
                         await db.updateEmp('MgrNull','','','','',deptId);
                         await removeEmpDept(deptId);
                         await db.deleteRoleDept(deptId);
                         console.log('\n' + 'Role Removed!' + '\n');
-                        break;
+                        return;
                 }
             })
     } else {
@@ -713,12 +721,12 @@ async function removeRole(roleId, roleChoices) {
                             console.log('\n' + 'Role Removed!' + '\n');
                             init();
                         })
-                        break;
+                        return;
                     case 'Remove':
                         await removeEmp(roleId);
                         await db.delete('role',roleId);
                         console.log('\n' + 'Role Removed!' + '\n');
-                        break;
+                        return;
                 }
             })
     } else {

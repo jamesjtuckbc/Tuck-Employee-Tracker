@@ -68,7 +68,7 @@ class DB {
             case 'MgrRole':
                 return this.connection.query('UPDATE employee e JOIN employee e2 ON e.manager_id = e2.id SET ? WHERE ?', [{ 'e.manager_id':mgr }, { 'e2.role_id': id }]);
             case 'MgrDept':
-                return this.connection.query('UPDATE employee e JOIN employee e2 ON e.manager_id = e2.id JOIN role r ON e2.role_id = r.id SET ? WHERE ?', [{ 'e.manager_id':mgr }, { 'r.role_id': id }]);
+                return this.connection.query('UPDATE employee e JOIN employee e2 ON e.manager_id = e2.id JOIN role r ON e2.role_id = r.id SET ? WHERE ?', [{ 'e.manager_id':mgr }, { 'r.department_id': id }]);
             case 'MgrNull':
                 return this.connection.query('UPDATE employee e JOIN employee e2 ON e.manager_id = e2.id JOIN role r ON e2.role_id = r.id SET e.manager_id = NULL WHERE ?', { 'r.department_id': id });
         }
@@ -76,8 +76,8 @@ class DB {
     updateDept(name, id) {
         return this.connection.query('UPDATE department SET ? WHERE ?', [{ 'name': name }, { 'id': id }]);
     }
-    updateRole(name, id) {
-        return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'title': name }, { 'id': id }]);
+    updateRole(name, salary, id) {
+        return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'title': name, 'salary': salary }, { 'id': id }]);
     }
     updateRoleDept(dept) {
         return this.connection.query('UPDATE role SET ? WHERE ?', [{ 'department_id': dept }, { 'department_id': dept }]);
